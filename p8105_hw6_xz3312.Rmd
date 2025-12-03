@@ -146,6 +146,8 @@ The code chunk below will import these data from the p8105.datasets package.We�
 
 r_hat_square
 beta_hat_1 / beta_hat_2
+
+Use 5000 bootstrap samples and, for each bootstrap sample, produce estimates of these two quantities. 
 ```{r}
 set.seed(1)
 
@@ -183,6 +185,31 @@ product `β̂1 β̂2` is consistently small and negative, with typical values ne
 *tmin* and *prcp* on *tmax* across bootstrap samples.
 
 ### Part b
+Plot the distribution of your estimates, and describe these in words. Using the 5000 bootstrap estimates, identify the 2.5% and 97.5% quantiles to provide a 95% confidence interval for r_hat_square and beta_1_hat / beta_2_hat
+```{r}
+# Plot 1 distribution of r hat squared
+boot_results %>% 
+  ggplot(aes(x = r_hat_sq)) +
+  geom_histogram(bins = 40, color = "white") +
+  labs(
+    title = "Bootstrap Distribution of Estimated Model Fit",
+    subtitle = expression(paste("Distribution of ", hat(r)^2, " from 5000 bootstrap samples")),
+    x = expression(hat(r)^2),
+    y = "Count"
+  )
+
+# Plot 2 distribution of beta
+boot_results %>% 
+  ggplot(aes(x = beta_prod)) +
+  geom_histogram(bins = 40, color = "white") +
+  labs(
+    title = "Bootstrap Distribution of Coefficient Product",
+    subtitle = expression(paste("Distribution of ", hat(beta)[1] * hat(beta)[2],
+                                " from 5000 bootstrap samples")),
+    x = expression(hat(beta)[1] * hat(beta)[2]),
+    y = "Count"
+  )
+```
 
 
 
