@@ -262,7 +262,7 @@ For my primary birthweight model, I select the following predictors:
 bwt ∼ blength + bhead + gaweeks + ppbmi + momage + wtgain + smoken
 
 
-These predictors were chosen based on biological reasoning and established determinants of fetal growth:
+These predictors were chosen based on logical and biological reasonsings.
 
 blength (baby length) and bhead (head circumference) are direct physical measurements of the newborn and are known to be strongly associated with birthweight.
 
@@ -274,4 +274,19 @@ wtgain (mother’s pregnancy weight gain) captures fetal growth support during p
 
 momage (mother’s age) may affect fetal development and pregnancy health.
 
-smoken (maternal smoking) is a well-established negative predictor of fetal growth.
+smoken (maternal smoking) is a negative predictor of fetal growth.
+```{r}
+mod_main <- lm(
+  bwt ~ blength + bhead + gaweeks + ppbmi + momage + wtgain + smoken,
+  data = birthweight
+)
+
+tidy(mod_main)
+glance(mod_main)
+```
+The chosen model explains a substantial proportion of the variability in 
+birthweight, with an \(R^2\) of `r round(glance(mod_main)$r.squared, 3)`. 
+Most predictors, including baby length, head circumference, gestational age, 
+maternal BMI, and weight gain, show strong associations with birthweight, 
+while smoking is associated with lower birthweight. The residual standard 
+error is approximately `r round(glance(mod_main)$sigma, 1)` grams.
