@@ -136,7 +136,7 @@ city_ors %>%
     title = "Odds of homicide being solved: male vs female victims"
   )
 ```
-The plot shows substantial variation across cities in the odds of solving homicides for male versus female victims. Most cities have odds ratios below 1, suggesting that homicides involving male victims are generally less likely to be solved. Only a few cities have odds ratios above 1, and many confidence intervals are wide, indicating uncertainty in estimates of several cities.
+The plot shows a lot of variation across cities in the odds of solving homicides for male versus female victims. Most cities have odds ratios below 1, suggesting that homicides involving male victims are generally less likely to be solved. Only a few cities have odds ratios above 1, and many confidence intervals are wide, indicating uncertainty in estimates of several cities.
 
 # Problem 2
 For this problem, we’ll use the Central Park weather data.
@@ -288,7 +288,7 @@ mod_main <- lm(
 tidy(mod_main)
 glance(mod_main)
 ```
-The model explains a substantial amount of variability in birthweight, with an 
+The model explains variability in birthweight, with an 
 \(R^2\) of `r round(glance(mod_main)$r.squared, 3)` and a residual standard error 
 of about `r round(glance(mod_main)$sigma, 1)` grams. Key predictors show strong 
 positive associations: each additional centimeter of baby length adds 
