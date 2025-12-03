@@ -68,5 +68,9 @@ baltimore_or <- fit_baltimore %>%
 
 baltimore_or
 ```
+Using the fitted logistic regression model for Baltimore, MD, the adjusted odds ratio for solving a homicide for male victims compared to female victims, holding age and race constant, is
+`r round(baltimore_or$estimate, 2)`,
+with a 95% confidence interval (`r round(baltimore_or$conf.low, 2)`, `r round(baltimore_or$conf.high, 2)`).
 
+Since this odds ratio is below 1, the model suggests that homicides involving male victims are less likely to be solved than those involving female victims, after adjusting for age and race.
 
