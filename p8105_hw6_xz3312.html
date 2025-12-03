@@ -538,6 +538,8 @@ package.We’ll focus on a simple linear regression with tmax as the
 response with tmin and prcp as the predictors, and are interested in the
 distribution of two quantities estimated from these data:</p>
 <p>r_hat_square beta_hat_1 / beta_hat_2</p>
+<p>The linear model we will fit would look like: tmax = b0 + b1(tmin)
++b2(prcp)</p>
 <p>Use 5000 bootstrap samples and, for each bootstrap sample, produce
 estimates of these two quantities.</p>
 <pre class="r"><code>set.seed(1)
@@ -617,8 +619,132 @@ near 0.94 with a fairly symmetric shape, indicating that the model
 consistently explains a large proportion of variability in <em>tmax</em>
 across bootstrap samples. In contrast, the distribution of β̂1β̂2 is
 centered near -0.00585 and remains consistently negative, suggesting a
-weak but stable combined effect of <code>tmin</code> and
-<code>prcp</code> on <code>tmax</code>.</p>
+weak combined effect of <code>tmin</code> and <code>prcp</code> on
+<code>tmax</code>.</p>
+</div>
+</div>
+<div id="problem-3" class="section level1">
+<h1>Problem 3</h1>
+<p>In this problem, you will analyze data gathered to understand the
+effects of several variables on a child’s birthweight. This dataset
+consists of roughly 4000 children and includes the following variables:
+babysex: baby’s sex (male = 1, female = 2) bhead: baby’s head
+circumference at birth (centimeters) blength: baby’s length at birth
+(centimeters) bwt: baby’s birth weight (grams) delwt: mother’s weight at
+delivery (pounds) fincome: family monthly income (in hundreds, rounded)
+frace: father’s race (1 = White, 2 = Black, 3 = Asian, 4 = Puerto Rican,
+8 = Other, 9 = Unknown) gaweeks: gestational age in weeks malform:
+presence of malformations that could affect weight (0 = absent, 1 =
+present) menarche: mother’s age at menarche (years) mheigth: mother’s
+height (inches) momage: mother’s age at delivery (years) mrace: mother’s
+race (1 = White, 2 = Black, 3 = Asian, 4 = Puerto Rican, 8 = Other)
+parity: number of live births prior to this pregnancy pnumlbw: previous
+number of low birth weight babies pnumgsa: number of prior small for
+gestational age babies ppbmi: mother’s pre-pregnancy BMI ppwt: mother’s
+pre-pregnancy weight (pounds) smoken: average number of cigarettes
+smoked per day during pregnancy wtgain: mother’s weight gain during
+pregnancy (pounds)</p>
+<div id="part-a-2" class="section level3">
+<h3>Part a</h3>
+<p>Load and clean the data for regression analysis (i.e. use appropriate
+variable names, convert numeric to factor where appropriate, check for
+the presence of missing data, etc.).</p>
+<pre class="r"><code># load the data
+birthweight &lt;- read_csv(&quot;birthweight.csv&quot;) %&gt;% 
+  mutate(
+    babysex = factor(babysex, labels = c(&quot;Male&quot;, &quot;Female&quot;)),
+    frace   = factor(frace),
+    mrace   = factor(mrace),
+    malform = factor(malform),
+  )</code></pre>
+<pre><code>## Rows: 4342 Columns: 20
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## dbl (20): babysex, bhead, blength, bwt, delwt, fincome, frace, gaweeks, malf...
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>summary(birthweight)</code></pre>
+<pre><code>##    babysex         bhead          blength           bwt           delwt      
+##  Male  :2230   Min.   :21.00   Min.   :20.00   Min.   : 595   Min.   : 86.0  
+##  Female:2112   1st Qu.:33.00   1st Qu.:48.00   1st Qu.:2807   1st Qu.:131.0  
+##                Median :34.00   Median :50.00   Median :3132   Median :143.0  
+##                Mean   :33.65   Mean   :49.75   Mean   :3114   Mean   :145.6  
+##                3rd Qu.:35.00   3rd Qu.:51.00   3rd Qu.:3459   3rd Qu.:157.0  
+##                Max.   :41.00   Max.   :63.00   Max.   :4791   Max.   :334.0  
+##     fincome      frace       gaweeks      malform     menarche    
+##  Min.   : 0.00   1:2123   Min.   :17.70   0:4327   Min.   : 0.00  
+##  1st Qu.:25.00   2:1911   1st Qu.:38.30   1:  15   1st Qu.:12.00  
+##  Median :35.00   3:  46   Median :39.90            Median :12.00  
+##  Mean   :44.11   4: 248   Mean   :39.43            Mean   :12.51  
+##  3rd Qu.:65.00   8:  14   3rd Qu.:41.10            3rd Qu.:13.00  
+##  Max.   :96.00            Max.   :51.30            Max.   :19.00  
+##     mheight          momage     mrace        parity            pnumlbw 
+##  Min.   :48.00   Min.   :12.0   1:2147   Min.   :0.000000   Min.   :0  
+##  1st Qu.:62.00   1st Qu.:18.0   2:1909   1st Qu.:0.000000   1st Qu.:0  
+##  Median :63.00   Median :20.0   3:  43   Median :0.000000   Median :0  
+##  Mean   :63.49   Mean   :20.3   4: 243   Mean   :0.002303   Mean   :0  
+##  3rd Qu.:65.00   3rd Qu.:22.0            3rd Qu.:0.000000   3rd Qu.:0  
+##  Max.   :77.00   Max.   :44.0            Max.   :6.000000   Max.   :0  
+##     pnumsga      ppbmi            ppwt           smoken           wtgain      
+##  Min.   :0   Min.   :13.07   Min.   : 70.0   Min.   : 0.000   Min.   :-46.00  
+##  1st Qu.:0   1st Qu.:19.53   1st Qu.:110.0   1st Qu.: 0.000   1st Qu.: 15.00  
+##  Median :0   Median :21.03   Median :120.0   Median : 0.000   Median : 22.00  
+##  Mean   :0   Mean   :21.57   Mean   :123.5   Mean   : 4.145   Mean   : 22.08  
+##  3rd Qu.:0   3rd Qu.:22.91   3rd Qu.:134.0   3rd Qu.: 5.000   3rd Qu.: 28.00  
+##  Max.   :0   Max.   :46.10   Max.   :287.0   Max.   :60.000   Max.   : 89.00</code></pre>
+<p>For my primary birthweight model, I select the following
+predictors:</p>
+<p>bwt ∼ blength + bhead + gaweeks + ppbmi + momage + wtgain +
+smoken</p>
+<p>These predictors were chosen based on logical and biological
+reasonsings.</p>
+<p>blength (baby length) and bhead (head circumference) are direct
+physical measurements of the newborn and are known to be strongly
+associated with birthweight.</p>
+<p>gaweeks (gestational age) is one of the strongest predictors of
+birthweight, since weight increases steadily as the pregnancy
+progresses.</p>
+<p>ppbmi (mother’s pre-pregnancy BMI) may reflect maternal nutritional
+status prior to gestation.</p>
+<p>wtgain (mother’s pregnancy weight gain) captures fetal growth support
+during pregnancy.</p>
+<p>momage (mother’s age) may affect fetal development and pregnancy
+health.</p>
+<p>smoken (maternal smoking) is a negative predictor of fetal
+growth.</p>
+<pre class="r"><code>mod_main &lt;- lm(
+  bwt ~ blength + bhead + gaweeks + ppbmi + momage + wtgain + smoken,
+  data = birthweight
+)
+
+tidy(mod_main)</code></pre>
+<pre><code>## # A tibble: 8 × 5
+##   term        estimate std.error statistic   p.value
+##   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
+## 1 (Intercept) -6191.      98.2      -63.1  0        
+## 2 blength        79.2      2.06      38.4  1.23e-277
+## 3 bhead         134.       3.50      38.4  2.41e-277
+## 4 gaweeks        13.3      1.50       8.86 1.16e- 18
+## 5 ppbmi           4.67     1.36       3.42 6.21e-  4
+## 6 momage          7.22     1.13       6.41 1.61e- 10
+## 7 wtgain          4.01     0.407      9.86 1.07e- 22
+## 8 smoken         -2.40     0.582     -4.12 3.89e-  5</code></pre>
+<pre class="r"><code>glance(mod_main)</code></pre>
+<pre><code>## # A tibble: 1 × 12
+##   r.squared adj.r.squared sigma statistic p.value    df  logLik    AIC    BIC
+##       &lt;dbl&gt;         &lt;dbl&gt; &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+## 1     0.698         0.698  282.     1431.       0     7 -30649. 61316. 61374.
+## # ℹ 3 more variables: deviance &lt;dbl&gt;, df.residual &lt;int&gt;, nobs &lt;int&gt;</code></pre>
+<p>The model explains a substantial amount of variability in
+birthweight, with an <span class="math inline">\(R^2\)</span> of 0.698
+and a residual standard error of about 281.7 grams. Key predictors show
+strong positive associations: each additional centimeter of baby length
+adds 79.2 grams, and each additional centimeter of head circumference
+adds 134.2 grams. Gestational age also increases birthweight by 13.3
+grams per week. Maternal BMI and pregnancy weight gain contribute modest
+increases, while smoking is associated with a decrease of -2.4 grams per
+cigarette per day.</p>
 </div>
 </div>
 

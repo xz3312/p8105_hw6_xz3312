@@ -257,6 +257,10 @@ birthweight <- read_csv("birthweight.csv") %>%
 
 summary(birthweight)
 ```
+
+### Part b
+Propose a regression model for birthweight. This model may be based on a hypothesized structure for the factors that underly birthweight, on a data-driven model-building process, or a combination of the two. Describe your modeling process and show a plot of model residuals against fitted values – use add_predictions and add_residuals in making this plot.
+
 For my primary birthweight model, I select the following predictors:
 
 bwt ∼ blength + bhead + gaweeks + ppbmi + momage + wtgain + smoken
@@ -296,4 +300,39 @@ Gestational age also increases birthweight by
 Maternal BMI and pregnancy weight gain contribute modest increases, while smoking 
 is associated with a decrease of 
 `r round(tidy(mod_main)$estimate[tidy(mod_main)$term == "smoken"], 1)` grams per cigarette per day.
+
+```{r}
+# Residual vs fitted plot
+birthweight_main <- birthweight %>% 
+  add_predictions(mod_main) %>% 
+  add_residuals(mod_main)
+
+birthweight_main %>% 
+  ggplot(aes(x = pred, y = resid)) +
+  geom_point(alpha = 0.3) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(
+    title = "Residuals vs Fitted Values: Main Birthweight Model",
+    x = "Fitted birthweight (grams)",
+    y = "Residuals"
+  )
+```
+Residuals appear roughly centered around zero across the range of fitted values with no strong patterns, suggesting that linearity and homoscedasticity are reasonably satisfied. A few large residuals are seen, but overall the model fit is good.
+
+
+```{r}
+# Two comparison models (required by assignment)**
+
+# *Model A: Uses only baby length and gestational age (main effects)
+mod_simple <- lm(
+  bwt ~ blength + gaweeks,
+  data = birthweight
+)
+
+# *Model B: Head circumference, length, baby sex, and all interactions (including 3-way)
+mod_inter <- lm(
+  bwt ~ bhead * blength * babysex,
+  data = birthweight
+)
+```
 
