@@ -2,7 +2,7 @@
 title: "p8105_hw6_xz3312"
 author: "Eric Zhang"
 date: "2025-12-01"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -201,21 +201,18 @@ boot_results %>%
     y = "Count"
   )
 ```
+The bootstrap distribution of r^2 is tight, symmetric, and centered around ~0.94, indicating high stability in model fit across samples. The bootstrap distribution of β̂1 / β̂2 is wide, right-skewed, and very negative, showing that the ratio is unstable because β̂2 is small and close to zero.
 
 ```{r}
+# 95% Confidence intervals
 r2_ci <- quantile(boot_results$r_hat_sq, probs = c(0.025, 0.975))
 beta_ratio_ci <- quantile(boot_results$beta_ratio, probs = c(0.025, 0.975))
 
 r2_ci
 beta_ratio_ci
 ```
-
-
-
-
-
-
-
+r^2 is very stable across bootstraps (CI ≈ 0.934–0.947).
+β̂1 / β̂2 is large, negative, and unstable (CI ≈ -277 to -126) due to a small β̂2.
 
 
 # Problem 3
