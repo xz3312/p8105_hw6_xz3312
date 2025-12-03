@@ -319,7 +319,11 @@ birthweight_main %>%
 ```
 Residuals appear roughly centered around zero across the range of fitted values with no strong patterns, suggesting that linearity and homoscedasticity are reasonably satisfied. A few large residuals are seen, but overall the model fit is good.
 
-
+### Part c
+Compare your model to two others:
+A) One using length at birth and gestational age as predictors (main effects only)
+B) One using head circumference, length, sex, and all interactions (including the three-way interaction) between these
+Make this comparison in terms of the cross-validated prediction error; use crossv_mc and functions in purrr as appropriate.
 ```{r}
 # Two comparison models (required by assignment)**
 
@@ -329,10 +333,52 @@ mod_simple <- lm(
   data = birthweight
 )
 
-# *Model B: Head circumference, length, baby sex, and all interactions (including 3-way)
+# *Model B: Head circumference, length, baby sex, and all interactions (including 3-way interaction)
 mod_inter <- lm(
   bwt ~ bhead * blength * babysex,
   data = birthweight
 )
+
+set.seed(1)
+
+cv_df <- crossv_mc(birthweight, n = 100)
+
+cv_results <- cv_df |>
+  mutate(
+    train = map(train, as_tibble),
+    test  = map(test, as_tibble),
+
+    fit_main = map(train, ~ lm(
+      bwt ~ blength + bhead + gaweeks + ppbmi + momage + wtgain + smoken,
+      data = .x
+    )),
+    fit_simple = map(train, ~ lm(
+      bwt ~ blength + gaweeks,
+      data = .x
+    )),
+    fit_inter = map(train, ~ lm(
+      bwt ~ bhead * blength * babysex,
+      data = .x
+    )),
+
+    rmse_main   = map2_dbl(fit_main,   test, ~ rmse(.x, .y)),
+    rmse_simple = map2_dbl(fit_simple, test, ~ rmse(.x, .y)),
+    rmse_inter  = map2_dbl(fit_inter,  test, ~ rmse(.x, .y))
+  )
+
+cv_summary <- cv_results %>% 
+  summarise(
+    rmse_main   = mean(rmse_main),
+    rmse_simple = mean(rmse_simple),
+    rmse_inter  = mean(rmse_inter)
+  )
+
+cv_summary
 ```
+Based on the cross-validated RMSE values, the main model performs best with an
+average RMSE of `r round(cv_summary$rmse_main, 1)`, lower than both the simpler 
+length–gestational age model (`r round(cv_summary$rmse_simple, 1)`) and the 
+interaction-heavy model (`r round(cv_summary$rmse_inter, 1)`). This indicates that 
+the main model achieves the strongest predictive accuracy without unnecessary 
+complexity.
 
