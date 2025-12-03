@@ -242,8 +242,19 @@ ppwt: mother’s pre-pregnancy weight (pounds)
 smoken: average number of cigarettes smoked per day during pregnancy
 wtgain: mother’s weight gain during pregnancy (pounds)
 
+
+### Part a 
+Load and clean the data for regression analysis (i.e. use appropriate variable names, convert numeric to factor where appropriate, check for the presence of missing data, etc.).
 ```{r}
 # load the data
+birthweight <- read_csv("birthweight.csv") %>% 
+  mutate(
+    babysex = factor(babysex, labels = c("Male", "Female")),
+    frace   = factor(frace),
+    mrace   = factor(mrace),
+    malform = factor(malform),
+  )
 
+summary(birthweight)
 ```
 
