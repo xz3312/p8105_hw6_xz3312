@@ -261,20 +261,14 @@ For my primary birthweight model, I select the following predictors:
 
 bwt ∼ blength + bhead + gaweeks + ppbmi + momage + wtgain + smoken
 
+Mpdeling process: I modeled birthweight (`bwt`) using a multiple linear regression that focuses on
+key predictors of fetal growth. My proposed model includes infant length (`blength`),
+head circumference (`bhead`), gestational age (`gaweeks`), and maternal factors such
+as pre-pregnancy BMI (`ppbmi`), maternal age (`momage`), pregnancy weight gain (`wtgain`),
+and smoking (`smoken`). These variables represent both newborn size and prenatal
+conditions known to influence birthweight. I excluded other highly collinear or
+postnatal measurements to keep the model interpretable and biologically reasonable.
 
-These predictors were chosen based on logical and biological reasonsings.
-
-blength (baby length) and bhead (head circumference) are direct physical measurements of the newborn and are known to be strongly associated with birthweight.
-
-gaweeks (gestational age) is one of the strongest predictors of birthweight, since weight increases steadily as the pregnancy progresses.
-
-ppbmi (mother’s pre-pregnancy BMI) may reflect maternal nutritional status prior to gestation.
-
-wtgain (mother’s pregnancy weight gain) captures fetal growth support during pregnancy.
-
-momage (mother’s age) may affect fetal development and pregnancy health.
-
-smoken (maternal smoking) is a negative predictor of fetal growth.
 ```{r}
 mod_main <- lm(
   bwt ~ blength + bhead + gaweeks + ppbmi + momage + wtgain + smoken,
@@ -313,7 +307,7 @@ birthweight_main %>%
     y = "Residuals"
   )
 ```
-Residuals appear roughly centered around zero across the range of fitted values with no strong patterns, suggesting that linearity and homoscedasticity are reasonably satisfied. A few large residuals are seen, but overall the model fit is good.
+Residuals appear roughly centered around zero across the range of fitted values with no strong patterns, suggesting that linearity and homoscedasticity are satisfied. A few large residuals are seen, but overall the model fit looks good.
 
 ### Part c
 Compare your model to two others:
@@ -339,7 +333,7 @@ set.seed(1)
 
 cv_df <- crossv_mc(birthweight, n = 100)
 
-cv_results <- cv_df |>
+cv_results <- cv_df %>% 
   mutate(
     train = map(train, as_tibble),
     test  = map(test, as_tibble),
@@ -369,12 +363,55 @@ cv_summary <- cv_results %>%
     rmse_inter  = mean(rmse_inter)
   )
 
+cv_long <- cv_results %>% 
+  select(rmse_main, rmse_simple, rmse_inter) %>% 
+  pivot_longer(
+    cols = everything(),
+    names_to = "model",
+    values_to = "rmse"
+  ) %>% 
+  mutate(
+    model = recode(
+      model,
+      rmse_main   = "Proposed birthweight model",
+      rmse_simple = "Length + gestational age",
+      rmse_inter  = "Head circumference × length × sex"
+    ),
+    model = factor(
+      model,
+      levels = c(
+        "Head circumference × length × sex",
+        "Length + gestational age",
+        "Proposed birthweight model"
+      )
+    )
+  )
+
+cv_long %>% 
+  ggplot(aes(x = model, y = rmse)) +
+  geom_violin(trim = FALSE) +
+  geom_boxplot(width = 0.15) +
+  labs(
+    title = "Cross-validated RMSE of birthweight models",
+    x = NULL,
+    y = "RMSE"
+  ) +
+  theme_minimal()
+```
+```{r}
 cv_summary
 ```
-Based on the cross-validated RMSE values, the main model performs best with an
+
+Based on the cross-validated RMSE values, the proposed model performs best with an
 average RMSE of `r round(cv_summary$rmse_main, 1)`, lower than both the simpler 
 length–gestational age model (`r round(cv_summary$rmse_simple, 1)`) and the 
 interaction-heavy model (`r round(cv_summary$rmse_inter, 1)`). This indicates that 
-the main model achieves the strongest predictive accuracy without unnecessary 
+the proposed model achieves the strongest predictive accuracy without unnecessary 
 complexity.
+
+The violin plot reflects this result. Shows that the `Proposed birthweight model` (including `blength`, `bhead`,
+`gaweeks`, `ppbmi`, `momage`, `wtgain`, and `smoken`) performing slightly better than interaction model and
+clearly better than the simple `Length + gestational age` model, whose RMSE
+distribution is highest and most variable.
+
 
