@@ -1,0 +1,48 @@
+---
+title: "p8105_hw6_xz3312"
+author: "Eric Zhang"
+date: "2025-12-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(broom)
+library(p8105.datasets)
+library(modelr)
+data("weather_df")
+```
+
+# Problem 1 
+The Washington Post has gathered data on homicides in 50 large U.S. cities and made the data available through a GitHub repository
+
+```{r}
+# load data from GitHub
+
+homicides_data <- read_csv(
+  "https://raw.githubusercontent.com/washingtonpost/data-homicides/master/homicide-data.csv"
+)
+```
+Create a city_state variable (e.g. “Baltimore, MD”), and a binary variable indicating whether the homicide is solved. Omit cities Dallas, TX; Phoenix, AZ; and Kansas City, MO – these don’t report victim race. Also omit Tulsa, AL – this is a data entry mistake. For this problem, limit your analysis those for whom victim_race is white or black. Be sure that victim_age is numeric.
+```{r}
+homicides_clean <- homicides_data %>% 
+  mutate(
+    city_state = str_c(city, ", ", state),
+    solved = case_when(
+      disposition == "Closed by arrest" ~ 1,
+      TRUE ~ 0
+    ),
+    solved = factor(solved, levels = c(0, 1), labels = c("unsolved", "solved")),
+    victim_race = factor(victim_race),
+    victim_sex  = factor(victim_sex),
+    victim_age  = as.numeric(victim_age)
+  ) %>% 
+  # drop the cities mentioned 
+  filter(
+    !city_state %in% c("Dallas, TX", "Phoenix, AZ", "Kansas City, MO", "Tulsa, AL"),
+    victim_race %in% c("White", "Black")
+  )
+```
+
+
