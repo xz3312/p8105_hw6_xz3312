@@ -25,29 +25,48 @@ homicides_data <- read_csv(
 )
 ```
 Create a city_state variable (e.g. “Baltimore, MD”), and a binary variable indicating whether the homicide is solved. Omit cities Dallas, TX; Phoenix, AZ; and Kansas City, MO – these don’t report victim race. Also omit Tulsa, AL – this is a data entry mistake. For this problem, limit your analysis those for whom victim_race is white or black. Be sure that victim_age is numeric.
+
 ```{r}
 homicides_clean <- homicides_data %>% 
   mutate(
-    city_state = str_c(city, ", ", state),
-    solved = case_when(
-      disposition == "Closed by arrest" ~ 1,
-      TRUE ~ 0
-    ),
-    solved = factor(solved, levels = c(0, 1), labels = c("unsolved", "solved")),
-    victim_race = factor(victim_race),
+    city_state  = str_c(city, state, sep = ", "),
+    resolved    = if_else(disposition == "Closed by arrest", 1, 0),
+
+    # fix victim_age before numeric conversion
+    victim_age  = na_if(victim_age, "Unknown"),
+    victim_age  = as.numeric(victim_age),
+
+    # convert sex and race to factors
     victim_sex  = factor(victim_sex),
-    victim_age  = as.numeric(victim_age) # make sure victim age is numeric
+    victim_race = factor(victim_race),
+
+    # ensure female is the reference level
+    victim_sex  = fct_relevel(victim_sex, "Female")
   ) %>% 
-  # drop the cities mentioned 
   filter(
     !city_state %in% c("Dallas, TX", "Phoenix, AZ", "Kansas City, MO", "Tulsa, AL"),
     victim_race %in% c("White", "Black")
-  )
+  ) %>% 
+  drop_na(resolved, victim_age, victim_sex, victim_race)
 ```
+
 For the city of Baltimore, MD, use the glm function to fit a logistic regression with resolved vs unresolved as the outcome and victim age, sex and race as predictors. Save the output of glm as an R object; apply the broom::tidy to this object; and obtain the estimate and confidence interval of the adjusted odds ratio for solving homicides comparing male victims to female victims keeping all other variables fixed.
-
 ```{r}
+baltimore <- homicides_clean %>% 
+  filter(city_state == "Baltimore, MD")
 
+fit_baltimore <- glm(
+  resolved ~ victim_age + victim_sex + victim_race,
+  data = baltimore,
+  family = binomial()
+)
+
+baltimore_or <- fit_baltimore %>% 
+  broom::tidy(conf.int = TRUE, exponentiate = TRUE) %>% 
+  filter(term == "victim_sexMale") %>% 
+  select(term, estimate, conf.low, conf.high)
+
+baltimore_or
 ```
 
 
