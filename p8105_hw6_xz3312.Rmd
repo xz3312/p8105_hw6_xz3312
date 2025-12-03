@@ -257,4 +257,21 @@ birthweight <- read_csv("birthweight.csv") %>%
 
 summary(birthweight)
 ```
+For my primary birthweight model, I select the following predictors:
 
+bwt ∼ blength + bhead + gaweeks + ppbmi + momage + wtgain + smoken
+
+
+These predictors were chosen based on biological reasoning and established determinants of fetal growth:
+
+blength (baby length) and bhead (head circumference) are direct physical measurements of the newborn and are known to be strongly associated with birthweight.
+
+gaweeks (gestational age) is one of the strongest predictors of birthweight, since weight increases steadily as the pregnancy progresses.
+
+ppbmi (mother’s pre-pregnancy BMI) may reflect maternal nutritional status prior to gestation.
+
+wtgain (mother’s pregnancy weight gain) captures fetal growth support during pregnancy.
+
+momage (mother’s age) may affect fetal development and pregnancy health.
+
+smoken (maternal smoking) is a well-established negative predictor of fetal growth.
