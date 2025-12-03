@@ -147,77 +147,76 @@ The code chunk below will import these data from the p8105.datasets package.We�
 r_hat_square
 beta_hat_1 / beta_hat_2
 
-The linear model we will fit would look like: tmax = b0 + b1(tmin) +b2(prcp)
-
 Use 5000 bootstrap samples and, for each bootstrap sample, produce estimates of these two quantities. 
+
+```{r problem2_setup, include = FALSE}
+library(p8105.datasets)
+data("weather_df")
+```
+
 ```{r}
-set.seed(1)
+set.seed(123)
 
 boot_results <- weather_df %>% 
+  drop_na(tmax, tmin, prcp) %>% 
   modelr::bootstrap(5000) %>% 
   mutate(
     # fit tmax ~ tmin + prcp in each bootstrap sample
     model  = map(strap, ~ lm(tmax ~ tmin + prcp, data = .x)),
     gl     = map(model, broom::glance),
     td     = map(model, broom::tidy),
-
-    # r-hat squared from each model
     r_hat_sq = map_dbl(gl, "r.squared"),
-
-    # β1-hat * β2-hat: coefficients for tmin and prcp
-    beta_prod = map_dbl(
+    beta_ratio = map_dbl(
       td,
       ~ {
         b1 <- .x$estimate[.x$term == "tmin"]
         b2 <- .x$estimate[.x$term == "prcp"]
-        b1 * b2
+        b1 / b2
       }
     )
   ) %>% 
-  select(r_hat_sq, beta_prod)
+  select(r_hat_sq, beta_ratio)
 
 head(boot_results)
 ```
-Across the 5000 bootstrap samples, the estimates of `r^2` remain very stable,
-with a mean around `r round(mean(boot_results$r_hat_sq), 3)` and most values
-close to `r round(boot_results$r_hat_sq[1], 3)`, indicating that the model
-explains a large proportion of the variability in *tmax*. In contrast, the
-product `β̂1 β̂2` is consistently small and negative, with typical values near
-`r round(boot_results$beta_prod[1], 5)`, suggesting a weak combined effect of
-*tmin* and *prcp* on *tmax* across bootstrap samples.
-
 ### Part b
 Plot the distribution of your estimates, and describe these in words. Using the 5000 bootstrap estimates, identify the 2.5% and 97.5% quantiles to provide a 95% confidence interval for r_hat_square and beta_1_hat / beta_2_hat
 ```{r}
-# Plot 1 distribution of r hat squared
+# Distribution of R^2 hat
 boot_results %>% 
   ggplot(aes(x = r_hat_sq)) +
-  geom_histogram(bins = 40, color = "white") +
+  geom_histogram(bins = 40) +
   labs(
-    title = "Bootstrap Distribution of Estimated Model Fit",
-    subtitle = expression(paste("Distribution of ", hat(r)^2, " from 5000 bootstrap samples")),
+    title = "Bootstrap distribution of estimated model fit",
     x = expression(hat(r)^2),
     y = "Count"
   )
 
-# Plot 2 distribution of beta
 boot_results %>% 
-  ggplot(aes(x = beta_prod)) +
-  geom_histogram(bins = 40, color = "white") +
+  ggplot(aes(x = beta_ratio)) +
+  geom_histogram(bins = 40) +
   labs(
-    title = "Bootstrap Distribution of Coefficient Product",
-    subtitle = expression(paste("Distribution of ", hat(beta)[1] * hat(beta)[2],
-                                " from 5000 bootstrap samples")),
-    x = expression(hat(beta)[1] * hat(beta)[2]),
+    title = bquote("Bootstrap distribution of " ~ hat(beta)[1] / hat(beta)[2]),
+    x = expression(hat(beta)[1] / hat(beta)[2]),
     y = "Count"
   )
 ```
-The bootstrap distribution of model fit shows that `r round(mean(boot_results$r_hat_sq), 3)`
-is centered near 0.94 with a fairly symmetric shape, indicating that the model
-consistently explains a large proportion of variability in *tmax* across bootstrap
-samples. In contrast, the distribution of `r paste0("β̂1β̂2")` is centered near
-`r round(mean(boot_results$beta_prod), 5)` and remains consistently negative,
-suggesting a weak combined effect of `tmin` and `prcp` on `tmax`.
+
+```{r}
+r2_ci <- quantile(boot_results$r_hat_sq, probs = c(0.025, 0.975))
+beta_ratio_ci <- quantile(boot_results$beta_ratio, probs = c(0.025, 0.975))
+
+r2_ci
+beta_ratio_ci
+```
+
+
+
+
+
+
+
+
 
 # Problem 3
 In this problem, you will analyze data gathered to understand the effects of several variables on a child’s birthweight. This dataset consists of roughly 4000 children and includes the following variables:
