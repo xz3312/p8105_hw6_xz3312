@@ -36,13 +36,18 @@ homicides_clean <- homicides_data %>%
     solved = factor(solved, levels = c(0, 1), labels = c("unsolved", "solved")),
     victim_race = factor(victim_race),
     victim_sex  = factor(victim_sex),
-    victim_age  = as.numeric(victim_age)
+    victim_age  = as.numeric(victim_age) # make sure victim age is numeric
   ) %>% 
   # drop the cities mentioned 
   filter(
     !city_state %in% c("Dallas, TX", "Phoenix, AZ", "Kansas City, MO", "Tulsa, AL"),
     victim_race %in% c("White", "Black")
   )
+```
+For the city of Baltimore, MD, use the glm function to fit a logistic regression with resolved vs unresolved as the outcome and victim age, sex and race as predictors. Save the output of glm as an R object; apply the broom::tidy to this object; and obtain the estimate and confidence interval of the adjusted odds ratio for solving homicides comparing male victims to female victims keeping all other variables fixed.
+
+```{r}
+
 ```
 
 
