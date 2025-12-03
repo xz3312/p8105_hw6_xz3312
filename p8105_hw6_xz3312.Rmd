@@ -147,6 +147,8 @@ The code chunk below will import these data from the p8105.datasets package.We�
 r_hat_square
 beta_hat_1 / beta_hat_2
 
+The linear model we will fit would look like: tmax = b0 + b1(tmin) +b2(prcp)
+
 Use 5000 bootstrap samples and, for each bootstrap sample, produce estimates of these two quantities. 
 ```{r}
 set.seed(1)
@@ -210,6 +212,38 @@ boot_results %>%
     y = "Count"
   )
 ```
+The bootstrap distribution of model fit shows that `r round(mean(boot_results$r_hat_sq), 3)`
+is centered near 0.94 with a fairly symmetric shape, indicating that the model
+consistently explains a large proportion of variability in *tmax* across bootstrap
+samples. In contrast, the distribution of `r paste0("β̂1β̂2")` is centered near
+`r round(mean(boot_results$beta_prod), 5)` and remains consistently negative,
+suggesting a weak combined effect of `tmin` and `prcp` on `tmax`.
 
+# Problem 3
+In this problem, you will analyze data gathered to understand the effects of several variables on a child’s birthweight. This dataset consists of roughly 4000 children and includes the following variables:
+babysex: baby’s sex (male = 1, female = 2)
+bhead: baby’s head circumference at birth (centimeters)
+blength: baby’s length at birth (centimeters)
+bwt: baby’s birth weight (grams)
+delwt: mother’s weight at delivery (pounds)
+fincome: family monthly income (in hundreds, rounded)
+frace: father’s race (1 = White, 2 = Black, 3 = Asian, 4 = Puerto Rican, 8 = Other, 9 = Unknown)
+gaweeks: gestational age in weeks
+malform: presence of malformations that could affect weight (0 = absent, 1 = present)
+menarche: mother’s age at menarche (years)
+mheigth: mother’s height (inches)
+momage: mother’s age at delivery (years)
+mrace: mother’s race (1 = White, 2 = Black, 3 = Asian, 4 = Puerto Rican, 8 = Other)
+parity: number of live births prior to this pregnancy
+pnumlbw: previous number of low birth weight babies
+pnumgsa: number of prior small for gestational age babies
+ppbmi: mother’s pre-pregnancy BMI
+ppwt: mother’s pre-pregnancy weight (pounds)
+smoken: average number of cigarettes smoked per day during pregnancy
+wtgain: mother’s weight gain during pregnancy (pounds)
 
+```{r}
+# load the data
+
+```
 
