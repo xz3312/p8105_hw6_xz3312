@@ -11,7 +11,7 @@
 
 <meta name="author" content="Eric Zhang" />
 
-<meta name="date" content="2025-12-03" />
+<meta name="date" content="2025-12-01" />
 
 <title>p8105_hw6_xz3312</title>
 
@@ -352,7 +352,7 @@ display: none;
 
 <h1 class="title toc-ignore">p8105_hw6_xz3312</h1>
 <h4 class="author">Eric Zhang</h4>
-<h4 class="date">2025-12-03</h4>
+<h4 class="date">2025-12-01</h4>
 
 </div>
 
@@ -374,6 +374,8 @@ homicides_data &lt;- read_csv(
 ## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<div id="part-a" class="section level3">
+<h3>Part a</h3>
 <p>Create a city_state variable (e.g. “Baltimore, MD”), and a binary
 variable indicating whether the homicide is solved. Omit cities Dallas,
 TX; Phoenix, AZ; and Kansas City, MO – these don’t report victim race.
@@ -401,6 +403,9 @@ sure that victim_age is numeric.</p>
     victim_race %in% c(&quot;White&quot;, &quot;Black&quot;)
   ) %&gt;% 
   drop_na(resolved, victim_age, victim_sex, victim_race)</code></pre>
+</div>
+<div id="part-b" class="section level3">
+<h3>Part b</h3>
 <p>For the city of Baltimore, MD, use the glm function to fit a logistic
 regression with resolved vs unresolved as the outcome and victim age,
 sex and race as predictors. Save the output of glm as an R object; apply
@@ -429,10 +434,77 @@ baltimore_or</code></pre>
 <p>Using the fitted logistic regression model for Baltimore, MD, the
 adjusted odds ratio for solving a homicide for male victims compared to
 female victims, holding age and race constant, is 0.43, with a 95%
-confidence interval (0.32, 0.56)</p>
+confidence interval (0.32, 0.56).</p>
 <p>Since this odds ratio is below 1, the model suggests that homicides
 involving male victims are less likely to be solved than those involving
 female victims, after adjusting for age and race.</p>
+</div>
+<div id="part-c" class="section level3">
+<h3>Part c</h3>
+<p>Now run glm for each of the cities in your dataset, and extract the
+adjusted odds ratio (and CI) for solving homicides comparing male
+victims to female victims. Do this within a “tidy” pipeline, making use
+of purrr::map, list columns, and unnest as necessary to create a
+dataframe with estimated ORs and CIs for each city.</p>
+<pre class="r"><code>city_ors &lt;- homicides_clean %&gt;% 
+  nest(data = -city_state) %&gt;% 
+  mutate(
+    fit = map(
+      data,
+      ~ glm(
+        resolved ~ victim_age + victim_sex + victim_race,
+        data   = .x,
+        family = binomial()
+      )
+    ),
+    tidy = map(
+      fit,
+      ~ tidy(.x, conf.int = TRUE, exponentiate = TRUE)
+    )
+  ) %&gt;% 
+  select(city_state, tidy) %&gt;% 
+  unnest(tidy) %&gt;% 
+  filter(term == &quot;victim_sexMale&quot;) %&gt;% 
+  select(city_state, estimate, conf.low, conf.high)</code></pre>
+<pre><code>## Warning: There were 43 warnings in `mutate()`.
+## The first warning was:
+## ℹ In argument: `tidy = map(fit, ~tidy(.x, conf.int = TRUE, exponentiate =
+##   TRUE))`.
+## Caused by warning:
+## ! glm.fit: fitted probabilities numerically 0 or 1 occurred
+## ℹ Run `dplyr::last_dplyr_warnings()` to see the 42 remaining warnings.</code></pre>
+<pre class="r"><code>city_ors</code></pre>
+<pre><code>## # A tibble: 47 × 4
+##    city_state      estimate conf.low conf.high
+##    &lt;chr&gt;              &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;
+##  1 Albuquerque, NM    1.77     0.825     3.76 
+##  2 Atlanta, GA        1.00     0.680     1.46 
+##  3 Baltimore, MD      0.426    0.324     0.558
+##  4 Baton Rouge, LA    0.381    0.204     0.684
+##  5 Birmingham, AL     0.870    0.571     1.31 
+##  6 Boston, MA         0.674    0.353     1.28 
+##  7 Buffalo, NY        0.521    0.288     0.936
+##  8 Charlotte, NC      0.884    0.551     1.39 
+##  9 Chicago, IL        0.410    0.336     0.501
+## 10 Cincinnati, OH     0.400    0.231     0.667
+## # ℹ 37 more rows</code></pre>
+<p>Across cities, the adjusted odds ratios comparing male to female
+victims vary substantially. For example, Albuquerque has an OR of 1.77
+with a 95% CI of (0.82, 3.76), indicating higher odds of a homicide
+being solved for male victims. In contrast, Baltimore shows a much lower
+OR of 0.43 (95% CI: 0.32, 0.56), suggesting male-victim homicides are
+less likely to be solved than female-victim homicides.</p>
+<p>Many cities, such as Boston (0.67), have odds ratios below 1, while
+others, such as Atlanta (1), are close to 1, indicating little
+difference by victim sex. Overall, most confidence intervals include
+values below 1, suggesting that in many cities male-victim homicides
+tend to be solved at lower rates.</p>
+</div>
+<div id="part-d" class="section level3">
+<h3>Part d</h3>
+<p>Create a plot that shows the estimated ORs and CIs for each city.
+Organize cities according to estimated OR, and comment on the plot.</p>
+</div>
 </div>
 
 
